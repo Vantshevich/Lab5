@@ -1,6 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "MyString.h"
+#include <iostream>
 #include <string>
+
+using namespace std;
 
 void MyString::InitSeparators() {
 	Separator = new char[7]{ '.', ',', '?', '!', ' ', ':', '\0' };
@@ -13,12 +16,26 @@ int MyString::strlen(const char* str)
 	return --length;
 }
 
-void MyString::strcpy(char* to_str, const char* from_str)
+void MyString::strcpy(char* Destination, const char* Source)
 {
 	int i = 0;
 	do {
-		to_str[i] = from_str[i];
-	} while (from_str[i++]);
+		Destination[i] = Source[i];
+	} while (Source[i++]);
+}
+
+void MyString::strcat(char** Destination, const char* Source)
+{
+	int lengthD = strlen(*Destination);
+	int lengthS = strlen(Source);
+	char* newStr = new char[lengthD + lengthS + 1];
+	for (int i = 0; i < lengthD; i++)
+		newStr[i] = (*Destination)[i];
+	for (int i = lengthD; i < lengthD + lengthS; i++)
+		newStr[i] = Source[i - lengthD];
+	newStr[lengthD + lengthS] = '\0';
+	delete[] *Destination;
+	*Destination = newStr;
 }
 
 MyString::MyString()
@@ -62,39 +79,39 @@ void MyString::ChangeSeparators(const char* nstr)
 
 void MyString::erase(int begin, int size)
 {
-	char* newStr = new char[Length - size];
+	char* newStr = new char[Length - size + 1];
 	for (int i = 0; i < begin; i++)
 		newStr[i] = Str[i];
 	for(int i = begin + size; i < Length; i++)
 		newStr[i - size] = Str[i];
+	newStr[Length - size] = '\0';
 	delete[] Str;
 	Str = newStr;
 	Length -= size;
 }
 
-void insert(int begin, const char* nstr)
+//void MyString::erase(char* LineToDelete)
+//{
+//	int length = strlen(LineToDelete);
+//
+//}
+
+void MyString::insert(int begin, const char* Addition)
 {
-	char* newStr = new char[Length + strlen(nstr)];
-	for (int i = 0; i < begin; i++)
-		newStr[i] = Str[i];
-	for (int i = begin + size; i < Length; i++)
-		newStr[i - size] = Str[i];
+	char* newStr = new char[Length + strlen(Addition)];
+	strcpy(newStr, Select(0, begin));
+	strcat(&newStr, Addition);
+	strcat(&newStr, Select(begin, Length - begin));
 	delete[] Str;
 	Str = newStr;
-	Length -= size;
-}
-
-void MyString::AddSeparators(const char* nstr) 
-{
-	//-----------------------------------------------------------------------------------------------------------
 }
 
 MyString& MyString::operator += (const MyString& t)
 {
 	Length += t.Length;
-	char* newStr = new char[Length + 1];
+	char* newStr = new char[Length];
 	strcpy(newStr, Str);
-	strcat(newStr, t.Str);
+	strcat(&newStr, t.Str);
 	delete[] Str;
 	Str = newStr;
 	return *this;
@@ -108,7 +125,15 @@ MyString& MyString::operator = (MyString& t)
 	return *this;
 }
 
-char MyString::operator [] (int Position) const
+MyString& MyString::operator = (const char* nstr)
+{
+	Length = strlen(nstr);
+	Str = new char[Length + 1];
+	strcpy(Str, nstr);
+	return *this;
+}
+
+char& MyString::operator [] (int Position)
 {
 	return Str[Position];
 }
@@ -148,9 +173,23 @@ bool MyString::is_empty() const
 	return Str == 0 || Str[0] == '\0';
 }
 
-const char* MyString::getStr() const
+char* MyString::getStr() const
 {
 	return Str;	
+}
+
+char* MyString::getSep() const
+{
+	return Separator;
+}
+
+char* MyString::Select(int begin, int length)
+{
+	char* newStr = new char[length];
+	for (int i = 0; i < length; i++)
+		newStr[i] = Str[i + begin];
+	newStr[length] = '\0';
+	return newStr;
 }
 
 int MyString::getLength() const
@@ -158,7 +197,17 @@ int MyString::getLength() const
 	return Length;
 }
 
-int MyString::FindFirstIf(bool (*check)(char Checking))
+//int MyString::Find(const char* Sought)
+//{
+//	for (int i = 0; i < Length; i++) {
+//		if (Str[i] == Sought[0]) {
+//			int j = 1;
+//			while(Sought())
+//		}
+//	}
+//}
+
+int MyString::FindFirstIf(bool (*check)(char))
 {
 	int i = 0;
 	while (Str[i] != '\0')
@@ -167,7 +216,7 @@ int MyString::FindFirstIf(bool (*check)(char Checking))
 	return '\0';
 }
 
-int MyString::FindFirstIf(int begin, bool (*check)(char Checking))
+int MyString::FindFirstIf(int begin, bool (*check)(char))
 {
 	int i = begin;
 	while (Str[i] != '\0')
@@ -176,7 +225,7 @@ int MyString::FindFirstIf(int begin, bool (*check)(char Checking))
 	return '\0';
 }
 
-int MyString::FindLastIf(bool (*check)(char Checking))
+int MyString::FindLastIf(bool (*check)(char))
 {
 	int i = Length - 1;
 	while (i >= 0)
@@ -185,7 +234,7 @@ int MyString::FindLastIf(bool (*check)(char Checking))
 	return '\0';
 }
 
-int MyString::FindLastIF(int end, bool (*check)(char Checking))
+int MyString::FindLastIF(int end, bool (*check)(char))
 {
 	int i = end;
 	while (i >= 0)
