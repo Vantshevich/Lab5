@@ -121,13 +121,15 @@ MyString& MyString::operator = (MyString& t)
 {
 	Length = t.Length;
 	delete[] Str;
-	Str = t.Str;
+	Str = new char[Length + 1];
+	strcpy(Str, t.Str);
 	return *this;
 }
 
 MyString& MyString::operator = (const char* nstr)
 {
 	Length = strlen(nstr);
+	delete[] Str;
 	Str = new char[Length + 1];
 	strcpy(Str, nstr);
 	return *this;
