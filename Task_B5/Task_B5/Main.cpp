@@ -7,12 +7,12 @@
 //Ванцевич Олег Сергеевич
 //		9 группа
 
-// B1
-//	 Задан текстовый файл Input.txt, состоящий  из слов. 
-//	 Разделителями между словами являются некоторое множество знаков препинания. 
-//	 Из каждой строки удалить слова, длина которых больше длины последнего слова этой строки и
-//	 записать эти строки  в новый файл Output.txt. Упорядочить слова  в полученных  строках по  возрастанию длин, результат сортировки записать в файл Out_sort.txt. 
-
+// Задан текстовый файл Input.txt, состоящий  из слов.Разделителями 
+// между словами является некоторое множество знаков препинания. Найти в каждой строке 
+// слова– числа(это слова, состоящие только из цифр), заменить  их числом, равным сумме    
+// цифр этого слова–числа.Результат записать  в новый файл Output.txt.Упорядочить слова  
+// в полученных  строках по  возрастанию количества цифр в словах, результат сортировки записать в файл Out_sort.txt.
+	
 			/*ТЕСТ No.1*/
 //
 
@@ -55,26 +55,63 @@ int FirstFrom(MyString& str, bool check(char), int B_Position = 0)			//Ищет перв
 	return -1;
 }
 
-void RemoveBiggerWords(MyString& str)									//Удаляет слова больше последнего
-{
-	int LastLetter = LastTill(str, isNotSeparator, str.getLength() - 1);	//Ищем последний символ не являющийся разделителем
-	int FirstLetter = LastTill(str, isSeparator, LastLetter) + 1;			//Ищем последний разделитель начиная с последней буквы
-	int LengthOfLastWord = LastLetter - FirstLetter + 1;					//Длина последнего слова
+bool isNumber(char a) {
+	return a - 48 <= 9 && a - 48 >= 0;
+}
 
-	for (int i = 0; i < FirstLetter - 1;) {									//Внутри цилка идём по всем словам и сравнивая их длину с длиной последенго слова удаляем		
+void ChangeDigitWord(MyString& str)									//Заменяем С-Ч на суммус цифр С-Ч
+{
+	for (int i = 0; i < str.getLength();) {									//Внутри цилка идём по всем словам 	
 		int WordBeginning = FirstFrom(str, isNotSeparator, i);
+		if (WordBeginning == -1) break;
 		int WordEnding = FirstFrom(str, isSeparator, WordBeginning + 1) - 1;
- 		if (WordEnding - WordBeginning + 1 > LengthOfLastWord) {
-			str.erase(WordBeginning, WordEnding - WordBeginning + 1);
-			i = WordBeginning;
-			FirstLetter -= WordEnding - WordBeginning + 1;
+		if (WordEnding == -2) {
+			WordEnding = str.getLength() - 1;
+			int sum = 0;
+			for (int j = WordBeginning; j <= WordEnding; j++) {					//Проверяем состоит ли чило только из цифр
+				if (!isNumber(str[j])) {
+					sum = -1;
+					break;
+				}
+				sum += str[j] - 48;
+			}
+			if (sum != -1) {													//Если да, то заменяем его
+				str.erase(WordBeginning, WordEnding - WordBeginning + 1);
+				string a = to_string(sum);
+				str.insert(WordBeginning, a.c_str());
+				WordEnding = a.length() - 1 + WordBeginning;
+			}
+			break;
 		}
-		else
-			i = WordEnding + 1;
+		else {
+			int sum = 0;
+			for (int j = WordBeginning; j <= WordEnding; j++) {					//Проверяем состоит ли чило только из цифр
+				if (!isNumber(str[j])) {
+					sum = -1;
+					break;
+				}
+				sum += str[j] - 48;
+			}
+			if (sum != -1) {													//Если да, то заменяем его
+				str.erase(WordBeginning, WordEnding - WordBeginning + 1);
+				string a = to_string(sum);
+				str.insert(WordBeginning, a.c_str());
+				WordEnding = a.length() - 1 + WordBeginning;
+			}
+		}
+		i = WordEnding + 1;
 	}
 }
 
-void StringSort(MyString& str) 
+int NumberOfNumbs(MyString& str) {
+	int n = 0;
+	for (int i = 0; i < str.getLength(); i++)
+		if (isNumber(str[i]))
+			n++;
+	return n;
+}
+
+void StringSort(MyString& str)
 {
 	int NumberOfWords = 0;
 	for (int i = 0; i < str.getLength();) {								//Считаем кол-во слов в строке
@@ -88,7 +125,8 @@ void StringSort(MyString& str)
 		i = WordEnding + 1;
 	}
 
-	MyString *WordMass = new MyString[NumberOfWords];					//Создаем массив слов-строк
+	MyString* WordMass = new MyString[NumberOfWords];					//Создаем массив слов-строк
+	int* WordNumberOfDigit = new int[NumberOfWords];
 	int j = 0;
 	for (int i = 0; i < NumberOfWords; i++) {							//Заполняем его
 		int WordBeginning = FirstFrom(str, isNotSeparator, j);
@@ -100,32 +138,37 @@ void StringSort(MyString& str)
 			WordMass[i] = str.Select(WordBeginning, WordEnding - WordBeginning + 1);
 			j = WordEnding + 1;
 		}
+		WordNumberOfDigit[i] = NumberOfNumbs(WordMass[i]);
 	}
+
 
 	for (int i = 0; i < NumberOfWords - 1; i++) {						//Сортируем массив
 		for (int j = 0; j < NumberOfWords - i - 1; j++) {
-			if (WordMass[j].getLength() > WordMass[j + 1].getLength()) {
+			if (WordNumberOfDigit[j] > WordNumberOfDigit[j + 1]) {
 				MyString temp;
+				int tempNumb;
 				temp = WordMass[j];
 				WordMass[j] = WordMass[j + 1];
 				WordMass[j + 1] = temp;
+				tempNumb = WordNumberOfDigit[j];
+				WordNumberOfDigit[j] = WordNumberOfDigit[j + 1];
+				WordNumberOfDigit[j + 1] = tempNumb;
 			}
 		}
 	}
 
 
 	str = WordMass[0].getStr();
-	cout << str.getStr();
 	str += " ";
 	for (int i = 1; i < NumberOfWords; i++) {							//Создаем нову строку из отсортированного массивац
 		str += WordMass[i].getStr();
-		if(i != NumberOfWords - 1)
+		if (i != NumberOfWords - 1)
 			str += " ";
 	}
 }
 
 int main() {
-	
+
 	setlocale(LC_ALL, ".1251");
 	ifstream Input("Input.txt");	//Поток ввода из файла Inoput
 	ofstream Output;				//Поток вывода в файл Output
@@ -134,16 +177,16 @@ int main() {
 	Out_sort.open("Out_sort.txt");
 	if (Input.is_open())
 	{
-		string line;				
+		string line;
 		while (getline(Input, line))	//Считываем строку
 		{
 			MyString str(line);			//Создаём объект, в который при создании передаём считанную строку
-			RemoveBiggerWords(str);		//Удаляем слова, длина которых больше длины последнего
+			ChangeDigitWord(str);		//Удаляем слова, длина которых больше длины последнего
 			if (Output.is_open())
 			{
 				Output << str.getStr() << endl;
 			}
-			StringSort(str);			//Сортируем слова в строке по возрастанию длин
+			StringSort(str);			//Сортируем слова в строке по кол-ву цифр в слове
 			if (Out_sort.is_open())
 			{
 				Out_sort << str.getStr() << endl;

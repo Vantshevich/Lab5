@@ -1,22 +1,24 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "MyString.h"
-#include <iostream>
 #include <string>
-
-using namespace std;
 
 void MyString::InitSeparators() {
 	Separator = new char[7]{ '.', ',', '?', '!', ' ', ':', '\0' };
 }
 
-int MyString::strlen(const char* str)
+int MyString::strlen(const char* str)	//Расчёт длинны переданной строки 
 {
 	int length = 0;
-	while(str[length++]){}
-	return --length;
+	if (str[0] != '\0') {
+		do {
+			length++;
+		} while (str[length]);
+	}
+	else return 0;
+	return length;
 }
 
-void MyString::strcpy(char* Destination, const char* Source)
+void MyString::strcpy(char* Destination, const char* Source) //Копирование строки Source в Destination
 {
 	int i = 0;
 	do {
@@ -24,18 +26,17 @@ void MyString::strcpy(char* Destination, const char* Source)
 	} while (Source[i++]);
 }
 
-void MyString::strcat(char** Destination, const char* Source)
+void MyString::strcat(char** Destination, const char* Source) //Присоеденение строки Source к  Destination
 {
-	int lengthD = strlen(*Destination);
-	int lengthS = strlen(Source);
-	char* newStr = new char[lengthD + lengthS + 1];
-	for (int i = 0; i < lengthD; i++)
-		newStr[i] = (*Destination)[i];
+	int lengthD = strlen(*Destination);			//Нахождение длин обеих строк
+	int lengthS = strlen(Source);					
+	char* newStr = new char[lengthD + lengthS + 1];	//Создаём новую строку у которой длина равна сумме двух длин + 1
+	for (int i = 0; i < lengthD; i++)				//записываем в новую строку первую и вторую
+		newStr[i] = (*Destination)[i];	
 	for (int i = lengthD; i < lengthD + lengthS; i++)
 		newStr[i] = Source[i - lengthD];
-	newStr[lengthD + lengthS] = '\0';
-	delete[] *Destination;
-	*Destination = newStr;
+	newStr[lengthD + lengthS] = '\0';				//В конец строки записываем символ конца массива
+	*Destination = newStr;							//Присваиваем указателю на старую строку ссылку на новую
 }
 
 MyString::MyString()
@@ -72,7 +73,7 @@ MyString::MyString(const MyString& t)
 void MyString::ChangeSeparators(const char* nstr)
 {
 	int NewLength = strlen(nstr);
-	delete[] Separator;
+	//delete[] Separator;
  	Separator = new char[NewLength];
 	strcpy(Separator, nstr);
 }
@@ -85,7 +86,7 @@ void MyString::erase(int begin, int size)
 	for(int i = begin + size; i < Length; i++)
 		newStr[i - size] = Str[i];
 	newStr[Length - size] = '\0';
-	delete[] Str;
+	//delete[] Str;
 	Str = newStr;
 	Length -= size;
 }
@@ -98,11 +99,12 @@ void MyString::erase(int begin, int size)
 
 void MyString::insert(int begin, const char* Addition)
 {
-	char* newStr = new char[Length + strlen(Addition)];
+	char* newStr = new char[begin];
 	strcpy(newStr, Select(0, begin));
 	strcat(&newStr, Addition);
 	strcat(&newStr, Select(begin, Length - begin));
-	delete[] Str;
+	Length += strlen(Addition);
+//	delete[] Str;
 	Str = newStr;
 }
 
@@ -112,15 +114,15 @@ MyString& MyString::operator += (const MyString& t)
 	char* newStr = new char[Length];
 	strcpy(newStr, Str);
 	strcat(&newStr, t.Str);
-	delete[] Str;
-	Str = newStr;
+	//delete[] Str;
+ 	Str = newStr;
 	return *this;
 }
 
 MyString& MyString::operator = (MyString& t) 
 {
 	Length = t.Length;
-	delete[] Str;
+	//delete[] Str;
 	Str = new char[Length + 1];
 	strcpy(Str, t.Str);
 	return *this;
@@ -129,7 +131,7 @@ MyString& MyString::operator = (MyString& t)
 MyString& MyString::operator = (const char* nstr)
 {
 	Length = strlen(nstr);
-	delete[] Str;
+	//delete[] Str;
 	Str = new char[Length + 1];
 	strcpy(Str, nstr);
 	return *this;
@@ -198,16 +200,6 @@ int MyString::getLength() const
 {
 	return Length;
 }
-
-//int MyString::Find(const char* Sought)
-//{
-//	for (int i = 0; i < Length; i++) {
-//		if (Str[i] == Sought[0]) {
-//			int j = 1;
-//			while(Sought())
-//		}
-//	}
-//}
 
 int MyString::FindFirstIf(bool (*check)(char))
 {
